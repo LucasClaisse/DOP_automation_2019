@@ -1,0 +1,19 @@
+server01_redis:
+  hosts:
+    167.172.162.231
+
+server02_postgres:
+  hosts:
+    167.172.166.116
+
+server03_poll:
+  hosts:
+    167.71.35.190
+
+server04_result:
+  hosts:
+    167.172.160.206
+
+server05_worker:
+  hosts:
+    167.172.168.172
