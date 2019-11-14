@@ -1,0 +1,13 @@
+[Unit]
+Description=The poll application
+After=network.target
+
+[Service]
+User={{ ansible_user }}
+Group=www-data
+WorkingDirectory=/home/{{ ansible_user }}/app
+ExecStart=
+Restart=always
+
+[Install]
+WantedBy=multi.user.target

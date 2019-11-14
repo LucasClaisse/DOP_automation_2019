@@ -1,0 +1,60 @@
+- hosts: webservers
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: update cache
+    apt: name=python-software-properties state=present update_cache=yes
+  - name: install packages
+    apt: name={{item}} state=installed
+    with_items:
+      - python3-pip
+      - python3-dev
+      - nginx
+- hosts: webservers
+  tasks:
+
+  - name: Copy service for systemd
+    copy:
+      src: ../files/poll.service
+      dest: /etc/systemd/system/poll.service
+  - name: Start service
+    systemd:
+      name: poll.service
+      state: started
+      enabled: yes
+  - name: Create nginx template
+    template:
+      src: ../files/.nginx
+      dest: /etc/nginx/sites-available/poll
+  - name: Remove default nginx configuration file
+    file:
+      path: /etc/nginx/sites-enabled/default
+      state: absent
+  - name: Enable poll site
+    file:
+      src: /etc/nginx/sites-available/poll
+      dest: /etc/nginx/sites-enabled/default
+      state: link
+      force: yes
+  - name: Reload nginx service
+    systemd:
+      name: nginx
+      state: restarded
+      enabled: yes
+
+  - name: Create app folder
+    file:
+    path: app
+    state: directory
+    mode: '0755'
+  - name: Copy files
+    copy:
+      src: ../../poll.tar
+      dest: ~/app/poll.tar
+  - name: Extract files
+    unarchive:
+      src: app/poll.tar
+      dest: ~/app/
+  - name: Install python requirements
+    pip:
+      requirements: ~/app/requirement.txt
