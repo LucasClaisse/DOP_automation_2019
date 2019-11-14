@@ -1,0 +1,60 @@
+---
+- hosts: server02_postgres
+  become: yes
+  gather_facts: no
+
+  tasks:
+  - name: test
+    debug: msg="{{ ansible_password }}"
+
+  - name: ensure apt cache is up to date
+    apt: update_cache=yes
+
+  - name: ensure packages are installed
+    apt: name={{item}}
+    with_items:
+        - postgresql
+        - libpq-dev
+        - python-psycopg2
+
+- hosts: server02_postgres
+  become: yes
+  become_user: postgres
+  gather_facts: no
+
+  tasks:
+  - name: enable and start service postgresql and ensure it is not masked
+    systemd:
+      name: postgresql
+      enabled: yes
+      masked: no
+      state: started
+
+  - name: ensure database is created
+    postgresql_db: name={{db_name}}
+
+  - name: ensure user has access to database
+    postgresql_user: db={{db_name}} name={{db_user}} password={{db_password}} priv=ALL
+
+  - name: ensure user does not have unnecessary privilege
+    postgresql_user: name={{db_user}} role_attr_flags=NOSUPERUSER,NOCREATEDB
+
+  - name: ensure no other user can access the database
+    postgresql_privs: db={{db_name}} role=PUBLIC type=database priv=ALL state=absent
+
+  - name: test
+    command: echo $USER
+    register: test
+
+  - debug: msg="{{ test.stdout }}"
+
+  - name: creating app folder
+    file:
+      path: ~/app
+      state: directory
+      mode: '0755'
+
+  - name: uploading to app folder
+    copy:
+      src: ../files/
+      dest: ~/app/files/
