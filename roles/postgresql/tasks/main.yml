@@ -4,18 +4,12 @@
   gather_facts: no
 
   tasks:
-  - name: test
-    debug: msg="{{ ansible_password }}"
-
   - name: ensure apt cache is up to date
     apt: update_cache=yes
 
   - name: ensure packages are installed
-    apt: name={{item}}
-    with_items:
-        - postgresql
-        - libpq-dev
-        - python-psycopg2
+    apt:
+      name: ['postgresql', 'libpq-dev', 'python-psycopg2']
 
 - hosts: server02_postgres
   become: yes
@@ -31,30 +25,58 @@
       state: started
 
   - name: ensure database is created
-    postgresql_db: name={{db_name}}
+    postgresql_db: name={{POSTGRESQL_DB}}
 
   - name: ensure user has access to database
-    postgresql_user: db={{db_name}} name={{db_user}} password={{db_password}} priv=ALL
+    postgresql_user: db={{POSTGRESQL_DB}} name={{POSTGRESQL_USER}} password={{POSTGRESQL_PASSWORD}} priv=ALL
 
   - name: ensure user does not have unnecessary privilege
-    postgresql_user: name={{db_user}} role_attr_flags=NOSUPERUSER,NOCREATEDB
+    postgresql_user: name={{POSTGRESQL_USER}} role_attr_flags=NOSUPERUSER,NOCREATEDB
 
   - name: ensure no other user can access the database
-    postgresql_privs: db={{db_name}} role=PUBLIC type=database priv=ALL state=absent
+    postgresql_privs: db={{POSTGRESQL_DB}} role=PUBLIC type=database priv=ALL state=absent
 
-  - name: test
-    command: echo $USER
-    register: test
+- hosts: server02_postgres
+  become: yes
+  gather_facts: no
 
-  - debug: msg="{{ test.stdout }}"
-
-  - name: creating app folder
-    file:
-      path: ~/app
-      state: directory
-      mode: '0755'
-
-  - name: uploading to app folder
+  tasks:
+  - name: uploading to folder
     copy:
       src: ../files/
-      dest: ~/app/files/
+      dest: /etc/postgresql/11/main/
+
+  - name: allowing all listen addresses
+    lineinfile:
+      dest: /etc/postgresql/11/main/postgresql.conf
+      regexp: "^listen_addresses"
+      line: "listen_addresses = '*'"
+
+- hosts: server02_postgres
+  become: yes
+  become_user: postgres
+  gather_facts: no
+
+  tasks:
+  - name: execute schema.sql on database
+    postgresql_db:
+      name: "{{POSTGRESQL_DB}}"
+      state: restore
+      target: /etc/postgresql/11/main/schema.sql
+
+  - name: change owner
+    postgresql_query:
+      query: ALTER TABLE public.votes OWNER TO {{POSTGRESQL_USER}};
+      db: "{{POSTGRESQL_DB}}"
+
+- hosts: server02_postgres
+  become: yes
+  gather_facts: no
+
+  tasks:
+  - name: enable and restart service postgresql and ensure it is not masked
+    systemd:
+      name: postgresql
+      enabled: yes
+      masked: no
+      state: restarted
