@@ -1,3 +1,4 @@
 ---
 # - import_playbook: "roles/postgresql/tasks/main.yml"
 - import_playbook: "roles/poll/tasks/main.yml"
+- import_playbook: "roles/result/tasks/main.yml"
