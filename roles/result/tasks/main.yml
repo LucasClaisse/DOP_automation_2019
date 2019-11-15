@@ -4,50 +4,13 @@
   gather_facts: no
 
   tasks:
-  - name: ensure /etc/environment exists
-    file:
-      path: "/etc/environment"
-      state: touch
-
-  - name: set POSTGRESQL_USER
-    lineinfile:
-      dest: /etc/environment
-      regexp: "^POSTGRESQL_USER="
-      line: "POSTGRESQL_USER={{ POSTGRESQL_USER }}"
-
-  - name: set POSTGRESQL_DB
-    lineinfile:
-      dest: /etc/environment
-      regexp: "^POSTGRESQL_DB="
-      line: "POSTGRESQL_DB={{ POSTGRESQL_DB }}"
-
-  - name: set POSTGRESQL_PORT
-    lineinfile:
-      dest: /etc/environment
-      regexp: "^POSTGRESQL_PORT="
-      line: "POSTGRESQL_PORT={{ POSTGRESQL_PORT }}"
-
-  - name: set POSTGRESQL_HOST
-    lineinfile:
-      dest: /etc/environment
-      regexp: "^POSTGRESQL_HOST="
-      line: "POSTGRESQL_HOST={{ POSTGRESQL_HOST }}"
-
-  - name: set POSTGRESQL_PASSWORD
-    lineinfile:
-      dest: /etc/environment
-      regexp: "^POSTGRESQL_PASSWORD="
-      line: "POSTGRESQL_PASSWORD={{ POSTGRESQL_PASSWORD }}"
-
   - name: ensure apt cache is up to date
     apt:
       update_cache: yes
 
   - name: ensure packages are installed
-    apt: name={{item}}
-    with_items:
-        - npm
-        - nodejs
+    apt:
+      name: ['npm', 'nodejs']
 
   - name: creating app folder
     file:
@@ -65,10 +28,58 @@
       src: ../../../result.tar
       dest: ~/app/
 
+  - name: ensure ~/app/result/.env exists
+    file:
+      path: "~/app/result/.env"
+      state: touch
+
+  - name: set POSTGRESQL_USER
+    lineinfile:
+      dest: ~/app/result/.env
+      regexp: "^POSTGRESQL_USER="
+      line: "POSTGRESQL_USER={{ POSTGRESQL_USER }}"
+
+  - name: set POSTGRESQL_DB
+    lineinfile:
+      dest: ~/app/result/.env
+      regexp: "^POSTGRESQL_DB="
+      line: "POSTGRESQL_DB={{ POSTGRESQL_DB }}"
+
+  - name: set POSTGRESQL_PORT
+    lineinfile:
+      dest: ~/app/result/.env
+      regexp: "^POSTGRESQL_PORT="
+      line: "POSTGRESQL_PORT={{ POSTGRESQL_PORT }}"
+
+  - name: set POSTGRESQL_HOST
+    lineinfile:
+      dest: ~/app/result/.env
+      regexp: "^POSTGRESQL_HOST="
+      line: "POSTGRESQL_HOST={{ POSTGRESQL_HOST }}"
+
+  - name: set POSTGRESQL_PASSWORD
+    lineinfile:
+      dest: ~/app/result/.env
+      regexp: "^POSTGRESQL_PASSWORD="
+      line: "POSTGRESQL_PASSWORD={{ POSTGRESQL_PASSWORD }}"
+
+  - name: set PORT
+    lineinfile:
+      dest: ~/app/result/.env
+      regexp: "^PORT="
+      line: "PORT={{ RESULT_PORT }}"
+
   - name: Copy service for systemd
     copy:
       src: ../files/result.service
       dest: /etc/systemd/system/result.service
+
+  - name: npm install
+    npm:
+      path: ~/app/result/
+
+  - name: npm install dotenv
+    command: npm install ~/app/result/ dotenv --save
 
   - name: Start service
     systemd:

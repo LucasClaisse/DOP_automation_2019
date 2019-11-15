@@ -2,7 +2,8 @@
 Description=Result Application
 
 [Service]
-ExecStart=node /root/app/result/server.js
+WorkingDirectory=/root/app/result
+ExecStart=node --require dotenv/config server.js
 Restart=always
 
 [Install]
