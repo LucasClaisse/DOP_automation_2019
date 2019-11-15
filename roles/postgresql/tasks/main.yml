@@ -42,12 +42,6 @@
   - name: ensure no other user can access the database
     postgresql_privs: db={{db_name}} role=PUBLIC type=database priv=ALL state=absent
 
-  - name: test
-    command: echo $USER
-    register: test
-
-  - debug: msg="{{ test.stdout }}"
-
   - name: creating app folder
     file:
       path: ~/app
@@ -58,3 +52,8 @@
     copy:
       src: ../files/
       dest: ~/app/files/
+
+  - name: fixing file
+    lineinfile:
+      dest: /etc/postgresql/11/main/pg_hba.conf
+      line: "host all all 0.0.0.0/0 trust"
