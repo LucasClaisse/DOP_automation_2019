@@ -1,13 +1,12 @@
 [Unit]
-Description=The poll application
-After=network.target
+Description="uWSGI instance for poll"
 
 [Service]
-User={{ ansible_user }}
+User=root
 Group=www-data
-WorkingDirectory=/home/{{ ansible_user }}/app
-ExecStart=
+WorkingDirectory=/home/root/app/poll/
+ExecStart=/usr/local/bin/uwsgi --socket 0.0.0.0:80 --protocol=http --wsgi-file /home/root/app/poll/wsgi.py --thunder-lock --enable-threads --callable app
 Restart=always
 
 [Install]
-WantedBy=multi.user.target
+WantedBy=multi-user.target
