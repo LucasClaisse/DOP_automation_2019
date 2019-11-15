@@ -1,17 +1,36 @@
-- hosts: webservers
+- hosts: server03_poll
   become: yes
   become_method: sudo
   tasks:
-  - name: update cache
-    apt: name=python-software-properties state=present update_cache=yes
   - name: install packages
-    apt: name={{item}} state=installed
-    with_items:
-      - python3-pip
-      - python3-dev
-      - nginx
-- hosts: webservers
+    apt:
+      name: ['python3', 'python3-pip', 'python3-dev']
+      state: present
+  - name: Install uwsgi
+    pip:
+      name: uwsgi
+      executable: pip3
+
+- hosts: server03_poll
   tasks:
+
+  - name: Create app folder
+    file:
+      path: /home/{{ ansible_user }}/app
+      state: directory
+      mode: '0755'
+  - name: Extract files
+    unarchive:
+      src: ../../../poll.tar
+      dest: /home/{{ ansible_user }}/app
+  - name: Install python requirements
+    pip:
+      requirements: /home/{{ ansible_user }}/app/poll/requirements.txt
+      executable: pip3
+  # - name: Copy uwsgi file
+  #   copy:
+  #     src: ../files/app.ini
+  #     dest: /home/{{ ansible_user }}/app/poll/app.ini
 
   - name: Copy service for systemd
     copy:
@@ -20,41 +39,25 @@
   - name: Start service
     systemd:
       name: poll.service
-      state: started
+      state: restarted
       enabled: yes
-  - name: Create nginx template
-    template:
-      src: ../files/.nginx
-      dest: /etc/nginx/sites-available/poll
-  - name: Remove default nginx configuration file
-    file:
-      path: /etc/nginx/sites-enabled/default
-      state: absent
-  - name: Enable poll site
-    file:
-      src: /etc/nginx/sites-available/poll
-      dest: /etc/nginx/sites-enabled/default
-      state: link
-      force: yes
-  - name: Reload nginx service
-    systemd:
-      name: nginx
-      state: restarded
-      enabled: yes
-
-  - name: Create app folder
-    file:
-    path: app
-    state: directory
-    mode: '0755'
-  - name: Copy files
-    copy:
-      src: ../../poll.tar
-      dest: ~/app/poll.tar
-  - name: Extract files
-    unarchive:
-      src: app/poll.tar
-      dest: ~/app/
-  - name: Install python requirements
-    pip:
-      requirements: ~/app/requirement.txt
+      masked: no
+  # - name: Create nginx template
+  #   template:
+  #     src: ../files/.nginx
+  #     dest: /etc/nginx/sites-available/poll
+  # - name: Remove default nginx configuration file
+  #   file:
+  #     path: /etc/nginx/sites-enabled/default
+  #     state: absent
+  # - name: Enable poll site
+  #   file:
+  #     src: /etc/nginx/sites-available/poll
+  #     dest: /etc/nginx/sites-enabled/default
+  #     state: link
+  #     force: yes
+  # - name: Reload nginx service
+  #   systemd:
+  #     name: nginx
+  #     state: restarted
+  #     enabled: yes
