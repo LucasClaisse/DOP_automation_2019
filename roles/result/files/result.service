@@ -1,0 +1,9 @@
+[Unit]
+Description=Result Application
+
+[Service]
+ExecStart=node /root/app/result/server.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

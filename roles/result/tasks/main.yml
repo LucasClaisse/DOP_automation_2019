@@ -1,0 +1,78 @@
+---
+- hosts: server04_result
+  become: yes
+  gather_facts: no
+
+  tasks:
+  - name: ensure /etc/environment exists
+    file:
+      path: "/etc/environment"
+      state: touch
+
+  - name: set POSTGRESQL_USER
+    lineinfile:
+      dest: /etc/environment
+      regexp: "^POSTGRESQL_USER="
+      line: "POSTGRESQL_USER={{ POSTGRESQL_USER }}"
+
+  - name: set POSTGRESQL_DB
+    lineinfile:
+      dest: /etc/environment
+      regexp: "^POSTGRESQL_DB="
+      line: "POSTGRESQL_DB={{ POSTGRESQL_DB }}"
+
+  - name: set POSTGRESQL_PORT
+    lineinfile:
+      dest: /etc/environment
+      regexp: "^POSTGRESQL_PORT="
+      line: "POSTGRESQL_PORT={{ POSTGRESQL_PORT }}"
+
+  - name: set POSTGRESQL_HOST
+    lineinfile:
+      dest: /etc/environment
+      regexp: "^POSTGRESQL_HOST="
+      line: "POSTGRESQL_HOST={{ POSTGRESQL_HOST }}"
+
+  - name: set POSTGRESQL_PASSWORD
+    lineinfile:
+      dest: /etc/environment
+      regexp: "^POSTGRESQL_PASSWORD="
+      line: "POSTGRESQL_PASSWORD={{ POSTGRESQL_PASSWORD }}"
+
+  - name: ensure apt cache is up to date
+    apt:
+      update_cache: yes
+
+  - name: ensure packages are installed
+    apt: name={{item}}
+    with_items:
+        - npm
+        - nodejs
+
+  - name: creating app folder
+    file:
+      path: ~/app
+      state: directory
+      mode: '0755'
+
+  - name: uploading to app folder
+    copy:
+      src: ../files/
+      dest: ~/app/files/
+
+  - name: unzipping archive
+    unarchive:
+      src: ../../../result.tar
+      dest: ~/app/
+
+  - name: Copy service for systemd
+    copy:
+      src: ../files/result.service
+      dest: /etc/systemd/system/result.service
+
+  - name: Start service
+    systemd:
+      name: result.service
+      state: started
+      masked: no
+      enabled: yes
