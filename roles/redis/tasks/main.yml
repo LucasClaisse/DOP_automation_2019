@@ -1,0 +1,22 @@
+- hosts: server03_poll
+  become: yes
+  become_method: sudo
+  tasks:
+  - name: install packages
+    apt:
+      name: ['redis-server']
+      state: present
+
+- hosts: server03_poll
+  tasks:
+  - name: Copy redis.conf
+    copy:
+      src: ../files/redis.conf
+      dest: /etc/redis/redis.conf
+  
+  - name: Restart redis-server.service
+    systemd:
+      name: redis-server.service
+      state: restarted
+      enabled: yes
+      masked: no
