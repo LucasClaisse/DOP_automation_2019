@@ -27,10 +27,16 @@
     pip:
       requirements: /home/{{ ansible_user }}/app/poll/requirements.txt
       executable: pip3
-  # - name: Copy uwsgi file
-  #   copy:
-  #     src: ../files/app.ini
-  #     dest: /home/{{ ansible_user }}/app/poll/app.ini
+
+  - name: ensure ~/app/result/.env exists
+    file:
+      path: /home/root/app/.env
+      state: touch
+  - name: set REDIS_HOST
+    lineinfile:
+      dest: /home/root/app/.env
+      regexp: "^REDIS_HOST="
+      line: "REDIS_HOST={{ REDIS_HOST }}"
 
   - name: Copy service for systemd
     copy:
@@ -42,22 +48,3 @@
       state: restarted
       enabled: yes
       masked: no
-  # - name: Create nginx template
-  #   template:
-  #     src: ../files/.nginx
-  #     dest: /etc/nginx/sites-available/poll
-  # - name: Remove default nginx configuration file
-  #   file:
-  #     path: /etc/nginx/sites-enabled/default
-  #     state: absent
-  # - name: Enable poll site
-  #   file:
-  #     src: /etc/nginx/sites-available/poll
-  #     dest: /etc/nginx/sites-enabled/default
-  #     state: link
-  #     force: yes
-  # - name: Reload nginx service
-  #   systemd:
-  #     name: nginx
-  #     state: restarted
-  #     enabled: yes

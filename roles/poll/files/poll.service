@@ -2,6 +2,7 @@
 Description="uWSGI instance for poll"
 
 [Service]
+EnvironmentFile=/home/root/app/.env
 User=root
 Group=www-data
 WorkingDirectory=/home/root/app/poll/
