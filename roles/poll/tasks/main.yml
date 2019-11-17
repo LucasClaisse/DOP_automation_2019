@@ -1,25 +1,28 @@
 - hosts: server03_poll
-  tasks:
 
+  tasks:
   - name: Create app folder
     file:
       path: /home/{{ ansible_user }}/app
       state: directory
       mode: '0755'
+
   - name: Extract files
     unarchive:
       src: ../../../poll.tar
       dest: /home/{{ ansible_user }}/app
+
   - name: Install python requirements
     pip:
       requirements: /home/{{ ansible_user }}/app/poll/requirements.txt
       executable: pip3
 
-  - name: ensure ~/app/result/.env exists
+  - name: Ensure ~/app/result/.env exists
     file:
       path: /home/root/app/.env
       state: touch
-  - name: set REDIS_HOST
+
+  - name: Set REDIS_HOST
     lineinfile:
       dest: /home/root/app/.env
       regexp: "^REDIS_HOST="
@@ -29,6 +32,7 @@
     copy:
       src: ../files/poll.service
       dest: /etc/systemd/system/poll.service
+
   - name: Start service
     systemd:
       name: poll.service

@@ -2,39 +2,38 @@
 - hosts: server02_postgres
   become: yes
   become_user: postgres
-  gather_facts: no
 
   tasks:
-  - name: enable and start service postgresql and ensure it is not masked
+  - name: Enable and start the PostgreSQL service
     systemd:
       name: postgresql
       enabled: yes
       masked: no
       state: started
 
-  - name: ensure database is created
+  - name: Ensure database is created
     postgresql_db: name={{POSTGRESQL_DB}}
 
-  - name: ensure user has access to database
+  - name: Ensure user has access to database
     postgresql_user: db={{POSTGRESQL_DB}} name={{POSTGRESQL_USER}} password={{POSTGRESQL_PASSWORD}} priv=ALL
 
-  - name: ensure user does not have unnecessary privilege
+  - name: Ensure user does not have unnecessary privilege
     postgresql_user: name={{POSTGRESQL_USER}} role_attr_flags=NOSUPERUSER,NOCREATEDB
 
-  - name: ensure no other user can access the database
+  - name: Ensure no other user can access the database
     postgresql_privs: db={{POSTGRESQL_DB}} role=PUBLIC type=database priv=ALL state=absent
 
 - hosts: server02_postgres
   become: yes
-  gather_facts: no
+  become_method: sudo
 
   tasks:
-  - name: uploading to folder
+  - name: Uploading required files
     copy:
       src: ../files/
       dest: /etc/postgresql/11/main/
 
-  - name: allowing all listen addresses
+  - name: Allowing all listen addresses
     lineinfile:
       dest: /etc/postgresql/11/main/postgresql.conf
       regexp: "^listen_addresses"
@@ -43,26 +42,25 @@
 - hosts: server02_postgres
   become: yes
   become_user: postgres
-  gather_facts: no
 
   tasks:
-  - name: execute schema.sql on database
+  - name: Execute schema.sql on database
     postgresql_db:
       name: "{{POSTGRESQL_DB}}"
       state: restore
       target: /etc/postgresql/11/main/schema.sql
 
-  - name: change owner
+  - name: Change database owner
     postgresql_query:
       query: ALTER TABLE public.votes OWNER TO {{POSTGRESQL_USER}};
       db: "{{POSTGRESQL_DB}}"
 
 - hosts: server02_postgres
   become: yes
-  gather_facts: no
+  become_method: sudo
 
   tasks:
-  - name: enable and restart service postgresql and ensure it is not masked
+  - name: Enable and restart the PostgreSQL service
     systemd:
       name: postgresql
       enabled: yes
