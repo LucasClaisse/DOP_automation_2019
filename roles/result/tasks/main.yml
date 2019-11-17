@@ -71,7 +71,7 @@
       path: ~/app/result/
 
   - name: npm install dotenv
-    command: npm install ~/app/result/ dotenv --save
+    shell: npm install ~/app/result/ dotenv --save
 
   - name: Start service
     systemd:

@@ -31,11 +31,11 @@
   - name: Uploading required files
     copy:
       src: ../files/
-      dest: /etc/postgresql/11/main/
+      dest: /etc/postgresql/12/main/
 
   - name: Allowing all listen addresses
     lineinfile:
-      dest: /etc/postgresql/11/main/postgresql.conf
+      dest: /etc/postgresql/12/main/postgresql.conf
       regexp: "^listen_addresses"
       line: "listen_addresses = '*'"
 
@@ -48,7 +48,7 @@
     postgresql_db:
       name: "{{POSTGRESQL_DB}}"
       state: restore
-      target: /etc/postgresql/11/main/schema.sql
+      target: /etc/postgresql/12/main/schema.sql
 
   - name: Change database owner
     postgresql_query:

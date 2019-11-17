@@ -1,4 +1,3 @@
----
 - hosts: all
   become: yes
   become_method: sudo
@@ -13,6 +12,9 @@
   become_method: sudo
 
   tasks:
+  - name: Updating apt cache
+    apt:
+      update_cache: yes
   - name: Install Redis
     apt:
       name: ['redis-server']
@@ -23,9 +25,32 @@
   become_method: sudo
 
   tasks:
+  - name: Installing gpg
+    apt:
+      name: gnupg2
+
+  - name: Install PostgreSQL 12 repository keys
+    apt_key:
+      url: https://www.postgresql.org/media/keys/ACCC4CF8.asc
+      state: present
+
+  - name: Ensure /etc/apt/sources.list.d/pgdg.list exists
+    file:
+      path: /etc/apt/sources.list.d/pgdg.list
+      state: touch
+
+  - name: Install PostgreSQL 12 repository
+    lineinfile:
+      dest: /etc/apt/sources.list.d/pgdg.list
+      line: "deb http://apt.postgresql.org/pub/repos/apt/ buster-pgdg main"
+
+  - name: Updating apt cache
+    apt:
+      update_cache: yes
+
   - name: Install PostgreSQL
     apt:
-      name: ['postgresql', 'libpq-dev', 'python-psycopg2']
+      name: ['postgresql-12', 'postgresql-client-12', 'libpq-dev', 'python-psycopg2']
 
 - hosts: server03_poll
   become: yes
