@@ -1,12 +1,4 @@
-- hosts: server01_redis
-  become: yes
-  become_method: sudo
-  tasks:
-  - name: install packages
-    apt:
-      name: ['redis-server']
-      state: present
-
+---
 - hosts: server01_redis
   tasks:
   - name: Copy redis.conf
