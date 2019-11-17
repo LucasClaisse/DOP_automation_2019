@@ -1,4 +1,4 @@
-- hosts: server03_poll
+- hosts: server01_redis
   become: yes
   become_method: sudo
   tasks:
@@ -7,7 +7,7 @@
       name: ['redis-server']
       state: present
 
-- hosts: server03_poll
+- hosts: server01_redis
   tasks:
   - name: Copy redis.conf
     copy:
