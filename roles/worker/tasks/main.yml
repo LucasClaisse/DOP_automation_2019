@@ -1,16 +1,5 @@
 ---
 - hosts: server05_worker
-  become: yes
-  become_method: sudo
-  gather_facts: no
-
-  tasks:
-  - name: Install packages
-    apt:
-      name: ['openjdk-11-jdk', 'maven']
-      update_cache: yes
-
-- hosts: server05_worker
   tasks:
 
   - name: Create app
